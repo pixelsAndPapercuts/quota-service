@@ -1,0 +1,27 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+
+  quota:
+    build: .
+    ports:
+      - "8000:8000"
+      - "8089:8089"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DB_PATH=/app/data/quota.db
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./locustfile.py:/app/locustfile.py
+    depends_on:
+      redis:
+        condition: service_healthy
